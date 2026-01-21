@@ -2,18 +2,38 @@
   (:require ["package:flutter/material.dart" :as m]
             [cljd.flutter :as f]))
 
+(defonce counter (atom 0))
+
+(def my-list-view
+  (f/widget
+   :watch [count counter]
+   (m/ListView
+    .children
+    [(m/ListTile
+      .title (m/Text (str "Item 0 - Count: " count))
+      .onTap (fn [] (swap! counter inc)))
+     (m/ListTile .title (m/Text "Item 1") .onTap (fn [] (println "Item 1 Clicked")))
+     (m/ListTile .title (m/Text "Item 2") .onTap (fn [] (println "Item 2 Clicked")))
+     (m/ListTile .title (m/Text "Item 3") .onTap (fn [] (println "Item 3 Clicked")))
+     (m/ListTile .title (m/Text "Item 4") .onTap (fn [] (println "Item 4 Clicked")))])))
+
 (defn main []
   (f/run
     (m/MaterialApp
-      .title "Welcome to Flutter"
+     .debugShowCheckedModeBanner false
+     .title "Welcome to Flutter"
       .theme (m/ThemeData .primarySwatch m.Colors/pink))
     .home
     (m/Scaffold
       .appBar (m/AppBar
-                .title (m/Text "Welcome to ClojureDart")))
+                .title (m/Text "클로저 다트로 코딩을 시작합시다...")))
     .body
-    m/Center
-    (m/Text "Let's get coding!"
-       .style (m/TextStyle
-                .color m.Colors/red
-                .fontSize 32.0))))
+    (m/Column
+      .children
+      [(m/Text "우리 코딩을 시작합시다...."
+          .style (m/TextStyle
+                   .color m.Colors/red
+                   .fontSize 32.0))
+       (m/Expanded
+         .child
+         my-list-view)])))
