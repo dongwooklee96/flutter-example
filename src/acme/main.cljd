@@ -37,19 +37,36 @@
   (f/run
     (m/MaterialApp
      .debugShowCheckedModeBanner false
-     .title "Welcome to Flutter"
+     .title ""
      .theme (m/ThemeData .primarySwatch m.Colors/pink))
     .home
     (m/Scaffold
-     .appBar (m/AppBar
-              .title (m/Text "클로저 다트로 코딩을 시작합시다...")))
-    .body
-    (m/Column
-     .children
-     [(m/Text "우리 코딩을 시작합시다...."
-              .style (m/TextStyle
-                      .color m.Colors/red
-                      .fontSize 32.0))
-      (m/Expanded
-       .child
-       my-list-view)])))
+     .body
+     (f/widget
+      m/SafeArea
+      .child
+      (m/Column
+       .children
+       [
+        (m/Padding
+         .padding (m/EdgeInsets.all 25.0)
+         .child
+         (m/Row
+          .children
+          [(m/Text "Woman"
+                   .style (m/TextStyle .fontWeight m.FontWeight/bold))
+           (m/Spacer)
+           (m/Text "Kids"
+                   .style (m/TextStyle .fontWeight m.FontWeight/bold))
+           (m/Spacer)
+           (m/Text "Shoes"
+                   .style (m/TextStyle .fontWeight m.FontWeight/bold))
+           (m/Spacer)
+           (m/Text "Bag"
+                   .style (m/TextStyle .fontWeight m.FontWeight/bold))]))
+        (m/Expanded
+         .child
+         (m/Image.asset "assets/bag.jpeg" .fit m.BoxFit/cover))
+        (m/SizedBox .height 2)
+        (m/Expanded
+         .child (m/Image.asset "assets/cloth.jpeg" .fit m.BoxFit/cover))])))))
