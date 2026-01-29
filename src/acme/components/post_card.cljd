@@ -1,0 +1,61 @@
+(ns acme.components.post-card
+  (:require ["package:flutter/material.dart" :as m]
+            ["package:cljd_hello/models/post.dart" :as models]
+            [acme.colors :as colors]))
+
+(defn post-card
+  "Post DTO를 카드 위젯으로 렌더링"
+  [^models/Post post]
+  (let [{:flds [id title body tags views reactions]} post
+        {:flds [likes dislikes]} reactions]
+    (m/Card
+     .elevation 0
+     .shape (m/RoundedRectangleBorder
+             .borderRadius (m/BorderRadius.circular 12)
+             .side (m/BorderSide .color colors/comic-black .width 2))
+     .color colors/comic-white
+     .margin (m/EdgeInsets.symmetric .horizontal 16 .vertical 8)
+     .child
+     (m/Padding
+      .padding (m/EdgeInsets.all 16)
+      .child
+      (m/Column
+       .crossAxisAlignment m/CrossAxisAlignment.start
+       .children
+       [(m/Row
+         .mainAxisAlignment m/MainAxisAlignment.spaceBetween
+         .children
+         [(m/Text (str "ID: " id)
+                  .style (m/TextStyle .fontSize 12 .color m/Colors.grey))
+          (m/Text (str "👁 " views)
+                  .style (m/TextStyle .fontSize 12 .color m/Colors.grey))])
+        (m/SizedBox .height 8)
+        (m/Text title
+                .style (m/TextStyle .fontSize 16 .fontWeight m/FontWeight.bold))
+        (m/SizedBox .height 8)
+        (m/Text body
+                .style (m/TextStyle .fontSize 14))
+        (m/SizedBox .height 8)
+        (m/Wrap
+         .spacing 4
+         .children
+         (map (fn [tag]
+                (m/Chip
+                 .label (m/Text tag .style (m/TextStyle .fontSize 10))
+                 .backgroundColor colors/comic-background-light
+                 .side (m/BorderSide .color colors/comic-black .width 1)
+                 .padding (m/EdgeInsets.all 0)
+                 .materialTapTargetSize m/MaterialTapTargetSize.shrinkWrap))
+              tags))
+        (m/SizedBox .height 8)
+        (m/Row
+         .children
+         [(m/Icon m/Icons.thumb_up_outlined .size 16 .color m/Colors.green)
+          (m/SizedBox .width 4)
+          (m/Text (str likes)
+                  .style (m/TextStyle .fontSize 12))
+          (m/SizedBox .width 16)
+          (m/Icon m/Icons.thumb_down_outlined .size 16 .color m/Colors.red)
+          (m/SizedBox .width 4)
+          (m/Text (str dislikes)
+                  .style (m/TextStyle .fontSize 12))])])))))

@@ -1,0 +1,9 @@
+(ns acme.colors
+  (:require ["package:flutter/material.dart" :as m]))
+
+(def comic-primary (m/Color 0xFF13C8EC))
+(def comic-yellow (m/Color 0xFFFFDC4D))
+(def comic-coral (m/Color 0xFFEC7A96))
+(def comic-black (m/Color 0xFF111718))
+(def comic-background-light (m/Color 0xFFF8F7F6))
+(def comic-white (m/Color 0xFFFFFFFF))

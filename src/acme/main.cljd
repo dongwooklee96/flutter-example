@@ -1,97 +1,63 @@
 (ns acme.main
   (:require ["package:flutter/material.dart" :as m]
+            ["package:cljd_hello/models/post.dart" :as models]
             [cljd.flutter :as f]
-            [acme.api.post.posts :as posts]))
+            [acme.api.post.posts :as posts]
+            [acme.colors :as colors]
+            [acme.components.post-card :refer [post-card]]
+            [acme.components.navigation :refer [bottom-bar]]))
 
 (defonce posts-data (atom {:loading true :error nil :posts []}))
+(defonce current-tab (atom 2)) ;; 기본값: 내 강의 (가운데)
 
 (defn load-posts []
   (reset! posts-data {:loading true :error nil :posts []})
   (-> (posts/get-all)
-      (.then (fn [response]
-               (reset! posts-data {:loading false :error nil :posts (take 10 (:posts response))})))
+      (.then (fn [^models/PostsResponse response]
+               (let [{:flds [posts]} response]
+                 (reset! posts-data {:loading false :error nil :posts (take 10 posts)}))))
       (.catchError (fn [e]
                      (reset! posts-data {:loading false :error (str e) :posts []})))))
-
-(defn post-card
-  "Post 타입을 카드 위젯으로 렌더링
-   Post {:id :title :body :tags :reactions :views :userId}"
-  [post]
-  (m/Card
-   .margin (m/EdgeInsets.symmetric .horizontal 16 .vertical 8)
-   .child
-   (m/Padding
-    .padding (m/EdgeInsets.all 16)
-    .child
-    (m/Column
-     .crossAxisAlignment m/CrossAxisAlignment.start
-     .children
-     [(m/Row
-       .mainAxisAlignment m/MainAxisAlignment.spaceBetween
-       .children
-       [(m/Text (str "ID: " (:id post))
-                .style (m/TextStyle .fontSize 12 .color m/Colors.grey))
-        (m/Text (str "👁 " (:views post))
-                .style (m/TextStyle .fontSize 12 .color m/Colors.grey))])
-      (m/SizedBox .height 8)
-      (m/Text (:title post)
-              .style (m/TextStyle .fontSize 16 .fontWeight m/FontWeight.bold))
-      (m/SizedBox .height 8)
-      (m/Text (:body post)
-              .style (m/TextStyle .fontSize 14))
-      (m/SizedBox .height 8)
-      (m/Wrap
-       .spacing 4
-       .children
-       (map (fn [tag]
-              (m/Chip
-               .label (m/Text tag .style (m/TextStyle .fontSize 10))
-               .padding (m/EdgeInsets.all 0)
-               .materialTapTargetSize m/MaterialTapTargetSize.shrinkWrap))
-            (:tags post)))
-      (m/SizedBox .height 8)
-      (m/Row
-       .children
-       [(m/Icon m/Icons.thumb_up_outlined .size 16 .color m/Colors.green)
-        (m/SizedBox .width 4)
-        (m/Text (str (get-in post [:reactions :likes]))
-                .style (m/TextStyle .fontSize 12))
-        (m/SizedBox .width 16)
-        (m/Icon m/Icons.thumb_down_outlined .size 16 .color m/Colors.red)
-        (m/SizedBox .width 4)
-        (m/Text (str (get-in post [:reactions :dislikes]))
-                .style (m/TextStyle .fontSize 12))])]))))
 
 (defn main []
   (load-posts)
   (f/run
    (m/MaterialApp
     .debugShowCheckedModeBanner false
-    .title "Posts App"
-    .theme (m/ThemeData .primarySwatch m.Colors/blue))
-   .home
-   (m/Scaffold
-    .appBar (m/AppBar .title (m/Text "DummyJSON Posts"))
-    .body
+    .title "My Classroom"
+    .theme (m/ThemeData
+            .scaffoldBackgroundColor colors/comic-background-light
+            .primarySwatch m.Colors/blue
+            .fontFamily "Noto Sans KR")
+    .home
     (f/widget
-     :watch [data posts-data]
-     (cond
-       (:loading data)
-       (m/Center .child (m/CircularProgressIndicator))
-
-       (:error data)
-       (m/Center
-        .child
-        (m/Column
-         .mainAxisAlignment m/MainAxisAlignment.center
-         .children
-         [(m/Text (:error data) .style (m/TextStyle .color m/Colors.red))
-          (m/SizedBox .height 16)
-          (m/ElevatedButton
-           .onPressed load-posts
-           .child (m/Text "Retry"))]))
-
-       :else
-       (m/ListView
-        .children
-        (map post-card (:posts data))))))))
+     :watch [tab-idx current-tab
+             data posts-data]
+     (m/Scaffold
+      .appBar (m/AppBar
+               .title (m/Text "내 강의실" .style (m/TextStyle .color colors/comic-black .fontWeight m/FontWeight.bold))
+               .backgroundColor colors/comic-background-light
+               .elevation 0
+               .centerTitle false)
+      .body
+      (m/Stack
+       .children
+       [(m/Positioned.fill
+         .child
+         (cond
+           (= tab-idx 2)
+           (cond
+             (:loading data) (m/Center .child (m/CircularProgressIndicator))
+             (:error data) (m/Center .child (m/Text (:error data)))
+             :else (m/ListView
+                    .padding (m/EdgeInsets.only .bottom 120 .top 10 .left 16 .right 16)
+                    .children (map post-card (:posts data))))
+           :else
+           (m/Center .child (m/Text (str "Tab " tab-idx " Selected")
+                                    .style (m/TextStyle .fontSize 24 .fontWeight m/FontWeight.bold)))))
+        (m/Positioned
+         .bottom 0
+         .left 0
+         .right 0
+         .child
+         (bottom-bar tab-idx #(reset! current-tab %)))]))))))

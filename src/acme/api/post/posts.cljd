@@ -1,36 +1,66 @@
 (ns acme.api.post.posts
+  "DummyJSON Posts API 호출 함수"
   (:refer-clojure :exclude [update])
-  (:require ["package:dio/dio.dart" :as dio]))
+  (:require ["package:dio/dio.dart" :as dio]
+            ["package:cljd_hello/models/post.dart" :as models]))
 
 (def ^:private base-url "https://dummyjson.com/posts")
 
-(def ^:private client (dio/Dio))
+(def ^:private ^dio/Dio client (dio/Dio))
 
-(defn get-by-id [id]
+(defn get-by-id
+  "단일 포스트 조회 - Returns: Post"
+  [id]
   (-> (.get client (str base-url "/" id))
       (.then (fn [^dio/Response response]
-               (.-data response)))))
+               (let [{:flds [data]} response]
+                 (models/Post.fromJson data))))))
 
-(defn get-all []
+(defn get-all
+  "전체 포스트 목록 조회 - Returns: PostsResponse"
+  []
   (-> (.get client base-url)
       (.then (fn [^dio/Response response]
-               (get (.-data response) "posts")))))
+               (let [{:flds [data]} response]
+                 (models/PostsResponse.fromJson data))))))
 
-(defn create [post]
-  (-> (.post client base-url
-             .data post
+(defn create
+  "새 포스트 생성
+   request: {:title string, :body string, :userId int, :tags [string]?}
+   Returns: Post"
+  [request]
+  {:pre [(string? (:title request))
+         (string? (:body request))
+         (int? (:userId request))]}
+  (-> (.post client (str base-url "/add")
+             .data request
              .options (dio/Options .headers {"Content-Type" "application/json; charset=UTF-8"}))
       (.then (fn [^dio/Response response]
-               (.-data response)))))
+               (let [{:flds [data]} response]
+                 (models/Post.fromJson data))))))
 
-(defn update [id post]
+(defn update
+  "포스트 수정
+   id: Post ID (int)
+   request: {:title string?, :body string?, :tags [string]?} - 모든 필드 선택적
+   Returns: Post"
+  [id request]
+  {:pre [(int? id)
+         (map? request)]}
   (-> (.put client (str base-url "/" id)
-            .data post
+            .data request
             .options (dio/Options .headers {"Content-Type" "application/json; charset=UTF-8"}))
       (.then (fn [^dio/Response response]
-               (.-data response)))))
+               (let [{:flds [data]} response]
+                 (models/Post.fromJson data))))))
 
-(defn delete [id]
+(defn delete
+  "포스트 삭제
+   id: Post ID (int)
+   Returns: 삭제된 Post 데이터 (map)"
+  [id]
+  {:pre [(int? id)]}
   (-> (.delete client (str base-url "/" id))
       (.then (fn [^dio/Response response]
-               (.-data response)))))
+               (let [{:flds [data]} response]
+                 data)))))

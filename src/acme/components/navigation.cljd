@@ -1,0 +1,65 @@
+(ns acme.components.navigation
+  (:require ["package:flutter/material.dart" :as m]
+            [acme.colors :as colors]))
+
+(defn nav-item [icon label index current-idx on-tap]
+  (let [selected? (= index current-idx)
+        color (if selected? colors/comic-black m/Colors.grey)]
+    (m/GestureDetector
+     .onTap #(on-tap index)
+     .behavior m/HitTestBehavior.opaque
+     .child (m/Column
+             .mainAxisSize m/MainAxisSize.min
+             .children
+             [(m/Icon icon .color color .size 30)
+              (m/Text label
+                      .style (m/TextStyle
+                              .color color
+                              .fontSize 10
+                              .fontWeight m/FontWeight.bold))]))))
+
+(defn center-nav-btn [on-tap]
+  (m/GestureDetector
+   .onTap on-tap
+   .child
+   (m/Container
+    .height 60
+    .width 60
+    .decoration (m/BoxDecoration
+                 .color colors/comic-primary
+                 .shape m/BoxShape.circle
+                 .border (m/Border.all .color colors/comic-black .width 3)
+                 .boxShadow [(m/BoxShadow
+                              .color colors/comic-black
+                              .offset (m/Offset 0 4)
+                              .blurRadius 0)])
+    .child (m/Icon m/Icons.import_contacts .color colors/comic-black .size 30))))
+
+(defn bottom-bar [current-idx on-tap]
+  (m/Stack
+   .clipBehavior m/Clip.none
+   .alignment m/Alignment.bottomCenter
+   .children
+   [(m/Container
+     .margin (m/EdgeInsets.only .top 24)
+     .padding (m/EdgeInsets.fromLTRB 24 10 24 20)
+     .decoration (m/BoxDecoration
+                  .color colors/comic-white
+                  .borderRadius (m/BorderRadius.vertical .top (m/Radius.circular 20))
+                  .border (m/Border.all .color colors/comic-black .width 3)
+                  .boxShadow [(m/BoxShadow
+                               .color colors/comic-black
+                               .offset (m/Offset 0 -4)
+                               .blurRadius 0)])
+     .child
+     (m/Row
+      .mainAxisAlignment m/MainAxisAlignment.spaceBetween
+      .children
+      [(nav-item m/Icons.home_outlined "홈" 0 current-idx on-tap)
+       (nav-item m/Icons.search "검색" 1 current-idx on-tap)
+       (m/SizedBox .width 40)
+       (nav-item m/Icons.storefront "판매하기" 3 current-idx on-tap)
+       (nav-item m/Icons.person_outline "프로필" 4 current-idx on-tap)]))
+    (m/Positioned
+     .top 0
+     .child (center-nav-btn #(on-tap 2)))]))
