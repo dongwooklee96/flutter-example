@@ -1,0 +1,36 @@
+(ns acme.api.post.posts
+  (:refer-clojure :exclude [update])
+  (:require ["package:dio/dio.dart" :as dio]))
+
+(def ^:private base-url "https://dummyjson.com/posts")
+
+(def ^:private client (dio/Dio))
+
+(defn get-by-id [id]
+  (-> (.get client (str base-url "/" id))
+      (.then (fn [^dio/Response response]
+               (.-data response)))))
+
+(defn get-all []
+  (-> (.get client base-url)
+      (.then (fn [^dio/Response response]
+               (get (.-data response) "posts")))))
+
+(defn create [post]
+  (-> (.post client base-url
+             .data post
+             .options (dio/Options .headers {"Content-Type" "application/json; charset=UTF-8"}))
+      (.then (fn [^dio/Response response]
+               (.-data response)))))
+
+(defn update [id post]
+  (-> (.put client (str base-url "/" id)
+            .data post
+            .options (dio/Options .headers {"Content-Type" "application/json; charset=UTF-8"}))
+      (.then (fn [^dio/Response response]
+               (.-data response)))))
+
+(defn delete [id]
+  (-> (.delete client (str base-url "/" id))
+      (.then (fn [^dio/Response response]
+               (.-data response)))))

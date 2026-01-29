@@ -1,72 +1,97 @@
 (ns acme.main
   (:require ["package:flutter/material.dart" :as m]
-            ["dart:async" :refer [Timer]]
-            [cljd.flutter :as f]))
+            [cljd.flutter :as f]
+            [acme.api.post.posts :as posts]))
 
-(defonce counters (atom {:item-0 0
-                         :item-1 0
-                         :item-2 0
-                         :item-3 0
-                         :item-4 0}))
+(defonce posts-data (atom {:loading true :error nil :posts []}))
 
-(defonce timer (atom nil))
+(defn load-posts []
+  (reset! posts-data {:loading true :error nil :posts []})
+  (-> (posts/get-all)
+      (.then (fn [response]
+               (reset! posts-data {:loading false :error nil :posts (take 10 (:posts response))})))
+      (.catchError (fn [e]
+                     (reset! posts-data {:loading false :error (str e) :posts []})))))
 
-(defn start-timer []
-  (when-not @timer
-    (reset! timer
-            (.periodic Timer
-             (Duration .seconds 1)
-             (fn [_]
-               (doseq [i (range 5)]
-                 (swap! counters update (keyword (str "item-" i)) inc)))))))
-
-(def my-list-view
-  (f/widget
-   :watch [counts counters]
-   (m/ListView
-    .children
-    (for [i (range 5)
-          :let [item-key (keyword (str "item-" i))]]
-      (m/ListTile
-       .title (m/Text (str "Item " i " - Counter " (get counts item-key)))
-       .onTap (fn [] (swap! counters update item-key inc))))
-    )))
+(defn post-card
+  "Post 타입을 카드 위젯으로 렌더링
+   Post {:id :title :body :tags :reactions :views :userId}"
+  [post]
+  (m/Card
+   .margin (m/EdgeInsets.symmetric .horizontal 16 .vertical 8)
+   .child
+   (m/Padding
+    .padding (m/EdgeInsets.all 16)
+    .child
+    (m/Column
+     .crossAxisAlignment m/CrossAxisAlignment.start
+     .children
+     [(m/Row
+       .mainAxisAlignment m/MainAxisAlignment.spaceBetween
+       .children
+       [(m/Text (str "ID: " (:id post))
+                .style (m/TextStyle .fontSize 12 .color m/Colors.grey))
+        (m/Text (str "👁 " (:views post))
+                .style (m/TextStyle .fontSize 12 .color m/Colors.grey))])
+      (m/SizedBox .height 8)
+      (m/Text (:title post)
+              .style (m/TextStyle .fontSize 16 .fontWeight m/FontWeight.bold))
+      (m/SizedBox .height 8)
+      (m/Text (:body post)
+              .style (m/TextStyle .fontSize 14))
+      (m/SizedBox .height 8)
+      (m/Wrap
+       .spacing 4
+       .children
+       (map (fn [tag]
+              (m/Chip
+               .label (m/Text tag .style (m/TextStyle .fontSize 10))
+               .padding (m/EdgeInsets.all 0)
+               .materialTapTargetSize m/MaterialTapTargetSize.shrinkWrap))
+            (:tags post)))
+      (m/SizedBox .height 8)
+      (m/Row
+       .children
+       [(m/Icon m/Icons.thumb_up_outlined .size 16 .color m/Colors.green)
+        (m/SizedBox .width 4)
+        (m/Text (str (get-in post [:reactions :likes]))
+                .style (m/TextStyle .fontSize 12))
+        (m/SizedBox .width 16)
+        (m/Icon m/Icons.thumb_down_outlined .size 16 .color m/Colors.red)
+        (m/SizedBox .width 4)
+        (m/Text (str (get-in post [:reactions :dislikes]))
+                .style (m/TextStyle .fontSize 12))])]))))
 
 (defn main []
-  (start-timer)
+  (load-posts)
   (f/run
-    (m/MaterialApp
-     .debugShowCheckedModeBanner false
-     .title ""
-     .theme (m/ThemeData .primarySwatch m.Colors/pink))
-    .home
-    (m/Scaffold
-     .body
-     (f/widget
-      m/SafeArea
-      .child
-      (m/Column
-       .children
-       [
-        (m/Padding
-         .padding (m/EdgeInsets.all 25.0)
-         .child
-         (m/Row
-          .children
-          [(m/Text "Woman"
-                   .style (m/TextStyle .fontWeight m.FontWeight/bold))
-           (m/Spacer)
-           (m/Text "Kids"
-                   .style (m/TextStyle .fontWeight m.FontWeight/bold))
-           (m/Spacer)
-           (m/Text "Shoes"
-                   .style (m/TextStyle .fontWeight m.FontWeight/bold))
-           (m/Spacer)
-           (m/Text "Bag"
-                   .style (m/TextStyle .fontWeight m.FontWeight/bold))]))
-        (m/Expanded
-         .child
-         (m/Image.asset "assets/bag.jpeg" .fit m.BoxFit/cover))
-        (m/SizedBox .height 2)
-        (m/Expanded
-         .child (m/Image.asset "assets/cloth.jpeg" .fit m.BoxFit/cover))])))))
+   (m/MaterialApp
+    .debugShowCheckedModeBanner false
+    .title "Posts App"
+    .theme (m/ThemeData .primarySwatch m.Colors/blue))
+   .home
+   (m/Scaffold
+    .appBar (m/AppBar .title (m/Text "DummyJSON Posts"))
+    .body
+    (f/widget
+     :watch [data posts-data]
+     (cond
+       (:loading data)
+       (m/Center .child (m/CircularProgressIndicator))
+
+       (:error data)
+       (m/Center
+        .child
+        (m/Column
+         .mainAxisAlignment m/MainAxisAlignment.center
+         .children
+         [(m/Text (:error data) .style (m/TextStyle .color m/Colors.red))
+          (m/SizedBox .height 16)
+          (m/ElevatedButton
+           .onPressed load-posts
+           .child (m/Text "Retry"))]))
+
+       :else
+       (m/ListView
+        .children
+        (map post-card (:posts data))))))))
