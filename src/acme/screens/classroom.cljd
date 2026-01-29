@@ -1,5 +1,6 @@
 (ns acme.screens.classroom
   (:require ["package:flutter/material.dart" :as m]
+            ["package:flutter/services.dart" :as s]
             ["package:cljd_hello/models/post.dart" :as models]
             [cljd.flutter :as f]
             [acme.api.post.posts :as posts]
@@ -8,25 +9,53 @@
 
 (defonce posts-data (atom {:loading true :error nil :posts []}))
 
-(defn load-posts []
-  (reset! posts-data {:loading true :error nil :posts []})
+(defn ^Future fetch-posts [is-refresh?]
+  (when-not is-refresh?
+    (reset! posts-data {:loading true :error nil :posts []}))
   (-> ^Future (posts/get-all)
       (.then (fn [^models/PostsResponse response]
                (let [{:flds [posts]} response]
-                 (reset! posts-data {:loading false :error nil :posts (take 10 posts)}))))
+                 (println "Posts loaded:" (count posts))
+                 (.lightImpact s/HapticFeedback)
+                 (swap! posts-data assoc :loading false :error nil :posts (take 10 posts)))))
       (.catchError (fn [e]
-                     (reset! posts-data {:loading false :error (str e) :posts []})))))
+                     (println "Error loading posts:" e)
+                     (swap! posts-data assoc :loading false :error (str e) :posts [])))))
+
+(defn load-posts []
+  (fetch-posts false))
+
+(defn ^Future refresh-posts []
+  (fetch-posts true))
 
 (defn view []
-  (load-posts)
+  ;; 초기 로딩: 데이터가 없고 로딩 중일 때만 호출 (무한 루프 방지)
+  (when (and (:loading @posts-data) (empty? (:posts @posts-data)))
+    (load-posts))
   (f/widget
    :watch [data posts-data]
    (m/Scaffold
     .backgroundColor colors/comic-background-light
     .body
-    (cond
-      (:loading data) (m/Center .child (m/CircularProgressIndicator))
-      (:error data) (m/Center .child (m/Text (:error data)))
-      :else (m/ListView
-             .padding (m/EdgeInsets.only .bottom 120 .top 10 .left 16 .right 16)
-             .children (map post-card (:posts data)))))))
+    (m/SafeArea
+     .child
+     (m/Column
+      .children
+      [(m/Container
+        .padding (m/EdgeInsets.all 16)
+        .alignment m/Alignment.centerLeft
+        .child (m/Icon m/Icons.auto_stories .size 32 .color colors/comic-black))
+       (m/Expanded
+        .child
+        (cond
+          (and (:loading data) (empty? (:posts data))) (m/Center .child (m/CircularProgressIndicator))
+          (:error data) (m/Center .child (m/Text (:error data)))
+          :else (m/RefreshIndicator
+                 .onRefresh refresh-posts
+                 .backgroundColor colors/comic-white
+                 .color colors/comic-black
+                 .strokeWidth 3.0
+                 .child
+                 (m/ListView
+                  .padding (m/EdgeInsets.only .bottom 120 .top 10 .left 16 .right 16)
+                  .children (map post-card (:posts data))))))])))))

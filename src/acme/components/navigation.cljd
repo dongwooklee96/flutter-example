@@ -1,12 +1,17 @@
 (ns acme.components.navigation
   (:require ["package:flutter/material.dart" :as m]
+            ["package:flutter/services.dart" :as s]
+            ["dart:async" :as async]
+            [cljd.flutter :as f]
             [acme.colors :as colors]))
 
 (defn nav-item [icon label index current-idx on-tap]
   (let [selected? (= index current-idx)
         color (if selected? colors/comic-black m/Colors.grey)]
     (m/GestureDetector
-     .onTap #(on-tap index)
+     .onTap #(do
+               (.lightImpact s/HapticFeedback)
+               (on-tap index))
      .behavior m/HitTestBehavior.opaque
      .child (m/Column
              .mainAxisSize m/MainAxisSize.min
@@ -19,21 +24,34 @@
                               .fontWeight m/FontWeight.bold))]))))
 
 (defn center-nav-btn [on-tap]
-  (m/GestureDetector
-   .onTap on-tap
-   .child
-   (m/Container
-    .height 60
-    .width 60
-    .decoration (m/BoxDecoration
-                 .color colors/comic-primary
-                 .shape m/BoxShape.circle
-                 .border (m/Border.all .color colors/comic-black .width 3)
-                 .boxShadow [(m/BoxShadow
-                              .color colors/comic-black
-                              .offset (m/Offset 0 4)
-                              .blurRadius 0)])
-    .child (m/Icon m/Icons.import_contacts .color colors/comic-black .size 30))))
+  (f/widget
+   :managed [notifier (m/ValueNotifier false)]
+   :watch [pressed? notifier]
+   (m/GestureDetector
+    .onTap (fn []
+             (.lightImpact s/HapticFeedback)
+             (set! (.-value notifier) true)
+             (async/Future.delayed
+              (Duration .milliseconds 100)
+              (fn [] (set! (.-value notifier) false)))
+             (on-tap))
+    .child
+    (m/AnimatedContainer
+     .duration (Duration .milliseconds 100)
+     .height 60
+     .width 60
+     .transform (if pressed?
+                  (m/Matrix4.translationValues 0 4 0)
+                  (m/Matrix4.identity))
+     .decoration (m/BoxDecoration
+                  .color colors/comic-primary
+                  .shape m/BoxShape.circle
+                  .border (m/Border.all .color colors/comic-black .width 3)
+                  .boxShadow [(m/BoxShadow
+                               .color colors/comic-black
+                               .offset (if pressed? (m/Offset 0 0) (m/Offset 0 4))
+                               .blurRadius 0)])
+     .child (m/Icon m/Icons.import_contacts .color colors/comic-black .size 30)))))
 
 (defn bottom-bar [current-idx on-tap]
   (m/Stack

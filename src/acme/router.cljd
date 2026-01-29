@@ -12,11 +12,6 @@
 (defn scaffold-with-nav-bar [^go/StatefulNavigationShell navigation-shell]
   (m/Scaffold
    .backgroundColor colors/comic-background-light
-   .appBar (m/AppBar
-            .title (m/Text "내 강의실" .style (m/TextStyle .color colors/comic-black .fontWeight m/FontWeight.bold))
-            .backgroundColor colors/comic-background-light
-            .elevation 0
-            .centerTitle false)
    .body (m/Stack
           .children
           [(m/Positioned.fill
