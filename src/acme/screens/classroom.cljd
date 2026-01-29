@@ -1,0 +1,32 @@
+(ns acme.screens.classroom
+  (:require ["package:flutter/material.dart" :as m]
+            ["package:cljd_hello/models/post.dart" :as models]
+            [cljd.flutter :as f]
+            [acme.api.post.posts :as posts]
+            [acme.components.post-card :refer [post-card]]
+            [acme.colors :as colors]))
+
+(defonce posts-data (atom {:loading true :error nil :posts []}))
+
+(defn load-posts []
+  (reset! posts-data {:loading true :error nil :posts []})
+  (-> ^Future (posts/get-all)
+      (.then (fn [^models/PostsResponse response]
+               (let [{:flds [posts]} response]
+                 (reset! posts-data {:loading false :error nil :posts (take 10 posts)}))))
+      (.catchError (fn [e]
+                     (reset! posts-data {:loading false :error (str e) :posts []})))))
+
+(defn view []
+  (load-posts)
+  (f/widget
+   :watch [data posts-data]
+   (m/Scaffold
+    .backgroundColor colors/comic-background-light
+    .body
+    (cond
+      (:loading data) (m/Center .child (m/CircularProgressIndicator))
+      (:error data) (m/Center .child (m/Text (:error data)))
+      :else (m/ListView
+             .padding (m/EdgeInsets.only .bottom 120 .top 10 .left 16 .right 16)
+             .children (map post-card (:posts data)))))))

@@ -1,63 +1,16 @@
 (ns acme.main
   (:require ["package:flutter/material.dart" :as m]
-            ["package:cljd_hello/models/post.dart" :as models]
             [cljd.flutter :as f]
-            [acme.api.post.posts :as posts]
             [acme.colors :as colors]
-            [acme.components.post-card :refer [post-card]]
-            [acme.components.navigation :refer [bottom-bar]]))
-
-(defonce posts-data (atom {:loading true :error nil :posts []}))
-(defonce current-tab (atom 2)) ;; 기본값: 내 강의 (가운데)
-
-(defn load-posts []
-  (reset! posts-data {:loading true :error nil :posts []})
-  (-> (posts/get-all)
-      (.then (fn [^models/PostsResponse response]
-               (let [{:flds [posts]} response]
-                 (reset! posts-data {:loading false :error nil :posts (take 10 posts)}))))
-      (.catchError (fn [e]
-                     (reset! posts-data {:loading false :error (str e) :posts []})))))
+            [acme.router :as router]))
 
 (defn main []
-  (load-posts)
   (f/run
-   (m/MaterialApp
+   (m/MaterialApp.router
+    .routerConfig router/router
     .debugShowCheckedModeBanner false
     .title "My Classroom"
     .theme (m/ThemeData
             .scaffoldBackgroundColor colors/comic-background-light
             .primarySwatch m.Colors/blue
-            .fontFamily "Noto Sans KR")
-    .home
-    (f/widget
-     :watch [tab-idx current-tab
-             data posts-data]
-     (m/Scaffold
-      .appBar (m/AppBar
-               .title (m/Text "내 강의실" .style (m/TextStyle .color colors/comic-black .fontWeight m/FontWeight.bold))
-               .backgroundColor colors/comic-background-light
-               .elevation 0
-               .centerTitle false)
-      .body
-      (m/Stack
-       .children
-       [(m/Positioned.fill
-         .child
-         (cond
-           (= tab-idx 2)
-           (cond
-             (:loading data) (m/Center .child (m/CircularProgressIndicator))
-             (:error data) (m/Center .child (m/Text (:error data)))
-             :else (m/ListView
-                    .padding (m/EdgeInsets.only .bottom 120 .top 10 .left 16 .right 16)
-                    .children (map post-card (:posts data))))
-           :else
-           (m/Center .child (m/Text (str "Tab " tab-idx " Selected")
-                                    .style (m/TextStyle .fontSize 24 .fontWeight m/FontWeight.bold)))))
-        (m/Positioned
-         .bottom 0
-         .left 0
-         .right 0
-         .child
-         (bottom-bar tab-idx #(reset! current-tab %)))]))))))
+            .fontFamily "Noto Sans KR"))))

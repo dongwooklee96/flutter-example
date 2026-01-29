@@ -1,0 +1,14 @@
+(ns acme.screens.sales
+  (:require ["package:flutter/material.dart" :as m]
+            [acme.colors :as colors]
+            [cljd.flutter :as f]))
+
+(defn view []
+  (m/Scaffold
+   .backgroundColor colors/comic-background-light
+   .body (m/Center
+          .child (m/Text "Sales Screen"
+                         .style (m/TextStyle
+                                 .fontSize 24
+                                 .fontWeight m/FontWeight.bold
+                                 .color colors/comic-black)))))
