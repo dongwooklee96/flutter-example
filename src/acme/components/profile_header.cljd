@@ -1,0 +1,79 @@
+(ns acme.components.profile-header
+  (:require ["package:flutter/material.dart" :as m]
+            [acme.colors :as colors]
+            [acme.components.comic-container :refer [comic-container]]))
+
+(defn profile-header []
+  (m/Container
+   .padding (m/EdgeInsets.symmetric .horizontal 16 .vertical 12)
+   .child
+   (m/Row
+    .mainAxisAlignment m/MainAxisAlignment.spaceBetween
+    .children
+    [(m/Row
+      .children
+      [(m/Stack
+        .clipBehavior m/Clip.none
+        .children
+        [(m/Container
+          .width 48
+          .height 48
+          .decoration (m/BoxDecoration
+                       .color colors/comic-yellow
+                       .shape m/BoxShape.circle
+                       .border (m/Border.all .color colors/comic-black .width 3)
+                       .boxShadow [(m/BoxShadow
+                                    .color colors/comic-black
+                                    .offset (m/Offset 4 4)
+                                    .blurRadius 0)])
+          .child (m/ClipOval
+                  .child (m/Icon m/Icons.person .size 32 .color colors/comic-black)))
+         (m/Positioned
+          .bottom -4
+          .right -4
+          .child (m/Container
+                  .padding (m/EdgeInsets.symmetric .horizontal 6 .vertical 2)
+                  .decoration (m/BoxDecoration
+                               .color colors/comic-coral
+                               .borderRadius (m/BorderRadius.circular 6)
+                               .border (m/Border.all .color colors/comic-black .width 2)
+                               .boxShadow [(m/BoxShadow
+                                            .color colors/comic-black
+                                            .offset (m/Offset 2 2)
+                                            .blurRadius 0)])
+                  .child (m/Text "Lvl 5"
+                                 .style (m/TextStyle
+                                         .fontSize 10
+                                         .fontWeight m/FontWeight.w900
+                                         .color colors/comic-white))))])
+       (m/SizedBox .width 12)
+       (m/Column
+        .crossAxisAlignment m/CrossAxisAlignment.start
+        .children
+        [(m/Text "Welcome back,"
+                 .style (m/TextStyle
+                         .fontSize 14
+                         .fontWeight m/FontWeight.bold
+                         .color (.-shade500 m/Colors.grey)))
+         (m/Text "Alex!"
+                 .style (m/TextStyle
+                         .fontSize 20
+                         .fontWeight m/FontWeight.w900
+                         .color colors/comic-black))])])
+     (comic-container
+      :color colors/comic-white
+      :border-radius 20.0
+      :shadow-offset 4.0
+      :padding (m/EdgeInsets.symmetric .horizontal 12 .vertical 6)
+      :child (m/Row
+              .mainAxisSize m/MainAxisSize.min
+              .children
+              [(m/Icon m/Icons.local_fire_department
+                       .color (m/Colors.orange)
+                       .size 24)
+               (m/SizedBox .width 4)
+               (m/Text "12"
+                       .style (m/TextStyle
+                               .fontSize 18
+                               .fontWeight m/FontWeight.w900
+                               .color colors/comic-black))]))])))

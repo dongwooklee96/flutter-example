@@ -1,0 +1,58 @@
+(ns acme.components.quick-stats
+  (:require ["package:flutter/material.dart" :as m]
+            [acme.colors :as colors]
+            [acme.components.comic-container :refer [comic-container]]))
+
+(defn stat-item [icon value label bg-color & {:keys [text-color]}]
+  (let [tc (or text-color colors/comic-black)]
+    (comic-container
+     :color bg-color
+     :border-radius 12.0
+     :shadow-offset 4.0
+     :child
+     (m/Container
+      .width 96
+      .height 96
+      .child (m/Column
+              .mainAxisAlignment m/MainAxisAlignment.center
+              .children
+              [(m/Icon icon .size 32 .color tc)
+               (m/SizedBox .height 4)
+               (m/Text value
+                       .style (m/TextStyle
+                               .fontSize 20
+                               .fontWeight m/FontWeight.w900
+                               .color tc))
+               (m/Text label
+                       .style (m/TextStyle
+                               .fontSize 11
+                               .fontWeight m/FontWeight.bold
+                               .color (.withOpacity ^m/Color tc 0.8)))])))))
+
+(defn quick-stats []
+  (m/Container
+   .height 112
+   .child
+   (m/ListView
+    .scrollDirection m/Axis.horizontal
+    .padding (m/EdgeInsets.symmetric .horizontal 16)
+    .children
+    [(stat-item m/Icons.verified "750" "Total XP" colors/comic-yellow)
+     (m/SizedBox .width 12)
+     (stat-item m/Icons.school "4" "Courses" colors/comic-primary :text-color colors/comic-white)
+     (m/SizedBox .width 12)
+     (stat-item m/Icons.military_tech "5" "Badges" colors/comic-coral :text-color colors/comic-white)
+     (m/SizedBox .width 12)
+     (m/Container
+      .width 96
+      .height 96
+      .decoration (m/BoxDecoration
+                   .color colors/comic-white
+                   .borderRadius (m/BorderRadius.circular 12)
+                   .border (m/Border.all .color colors/comic-black .width 2 .style m/BorderStyle.solid)
+                   .boxShadow [(m/BoxShadow
+                                .color colors/comic-black
+                                .offset (m/Offset 4 4)
+                                .blurRadius 0)])
+      .child (m/Center
+              .child (m/Icon m/Icons.add .size 32 .color (.-shade300 m/Colors.grey))))])))

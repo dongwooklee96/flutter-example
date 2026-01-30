@@ -1,0 +1,18 @@
+(ns acme.components.comic-container
+  (:require ["package:flutter/material.dart" :as m]
+            [acme.colors :as colors]))
+
+(defn comic-container [& {:keys [color border-radius child padding shadow-offset]
+                          :or {border-radius 12.0
+                               shadow-offset 4.0}}]
+  (m/Container
+   .padding padding
+   .decoration (m/BoxDecoration
+                .color (or color colors/comic-white)
+                .borderRadius (m/BorderRadius.circular border-radius)
+                .border (m/Border.all .color colors/comic-black .width 2)
+                .boxShadow [(m/BoxShadow
+                             .color colors/comic-black
+                             .offset (m/Offset shadow-offset shadow-offset)
+                             .blurRadius 0)])
+   .child child))

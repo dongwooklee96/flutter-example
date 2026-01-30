@@ -1,0 +1,38 @@
+(ns acme.components.section-header
+  (:require ["package:flutter/material.dart" :as m]
+            [acme.colors :as colors]))
+
+(defn section-header [title & {:keys [action-text]}]
+  (m/Padding
+   .padding (m/EdgeInsets.symmetric .horizontal 16 .vertical 8)
+   .child
+   (m/Row
+    .mainAxisAlignment m/MainAxisAlignment.spaceBetween
+    .children
+    [(m/Stack
+      .clipBehavior m/Clip.none
+      .children
+      [(m/Text title
+               .style (m/TextStyle
+                       .fontSize 22
+                       .fontWeight m/FontWeight.w900
+                       .fontStyle m/FontStyle.italic
+                       .color colors/comic-black))
+       (m/Positioned
+        .bottom -2
+        .left 0
+        .right 0
+        .child (m/Transform
+                .transform (m/Matrix4.skewX -0.1)
+                .child (m/Container
+                        .height 4
+                        .color colors/comic-yellow)))])
+     (if action-text
+       (m/TextButton
+        .onPressed (fn [] nil)
+        .child (m/Text action-text
+                       .style (m/TextStyle
+                               .fontSize 14
+                               .fontWeight m/FontWeight.bold
+                               .color colors/comic-primary)))
+       (m/SizedBox .width 0))])))

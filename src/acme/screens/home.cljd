@@ -3,12 +3,504 @@
             [acme.colors :as colors]
             [cljd.flutter :as f]))
 
+(defn comic-container [& {:keys [color border-radius child padding shadow-offset]
+                          :or {color colors/comic-white
+                               border-radius 12.0
+                               shadow-offset 4.0}}]
+  (m/Container
+   .padding padding
+   .decoration (m/BoxDecoration
+                .color color
+                .borderRadius (m/BorderRadius.circular border-radius)
+                .border (m/Border.all .color colors/comic-black .width 2)
+                .boxShadow [(m/BoxShadow
+                             .color colors/comic-black
+                             .offset (m/Offset shadow-offset shadow-offset)
+                             .blurRadius 0)])
+   .child child))
+
+(defn profile-header []
+  (m/Container
+   .padding (m/EdgeInsets.symmetric .horizontal 16 .vertical 12)
+   .child
+   (m/Row
+    .mainAxisAlignment m/MainAxisAlignment.spaceBetween
+    .children
+    [(m/Row
+      .children
+      [(m/Stack
+        .clipBehavior m/Clip.none
+        .children
+        [(m/Container
+          .width 48
+          .height 48
+          .decoration (m/BoxDecoration
+                       .color colors/comic-yellow
+                       .shape m/BoxShape.circle
+                       .border (m/Border.all .color colors/comic-black .width 3)
+                       .boxShadow [(m/BoxShadow
+                                    .color colors/comic-black
+                                    .offset (m/Offset 4 4)
+                                    .blurRadius 0)])
+          .child (m/ClipOval
+                  .child (m/Icon m/Icons.person .size 32 .color colors/comic-black)))
+         (m/Positioned
+          .bottom -4
+          .right -4
+          .child (m/Container
+                  .padding (m/EdgeInsets.symmetric .horizontal 6 .vertical 2)
+                  .decoration (m/BoxDecoration
+                               .color colors/comic-coral
+                               .borderRadius (m/BorderRadius.circular 6)
+                               .border (m/Border.all .color colors/comic-black .width 2)
+                               .boxShadow [(m/BoxShadow
+                                            .color colors/comic-black
+                                            .offset (m/Offset 2 2)
+                                            .blurRadius 0)])
+                  .child (m/Text "Lvl 5"
+                                 .style (m/TextStyle
+                                         .fontSize 10
+                                         .fontWeight m/FontWeight.w900
+                                         .color colors/comic-white))))])
+       (m/SizedBox .width 12)
+       (m/Column
+        .crossAxisAlignment m/CrossAxisAlignment.start
+        .children
+        [(m/Text "Welcome back,"
+                 .style (m/TextStyle
+                         .fontSize 14
+                         .fontWeight m/FontWeight.bold
+                         .color (.-shade500 m/Colors.grey)))
+         (m/Text "Alex!"
+                 .style (m/TextStyle
+                         .fontSize 20
+                         .fontWeight m/FontWeight.w900
+                         .color colors/comic-black))])])
+     (comic-container
+      :color colors/comic-white
+      :border-radius 20.0
+      :shadow-offset 4.0
+      :padding (m/EdgeInsets.symmetric .horizontal 12 .vertical 6)
+      :child (m/Row
+              .mainAxisSize m/MainAxisSize.min
+              .children
+              [(m/Icon m/Icons.local_fire_department
+                       .color (m/Colors.orange)
+                       .size 24)
+               (m/SizedBox .width 4)
+               (m/Text "12"
+                       .style (m/TextStyle
+                               .fontSize 18
+                               .fontWeight m/FontWeight.w900
+                               .color colors/comic-black))]))])))
+
+;; Global Level Progress Card
+(defn level-progress-card []
+  (m/Padding
+   .padding (m/EdgeInsets.all 16)
+   .child
+   (m/Stack
+    .clipBehavior m/Clip.none
+    .children
+    [(comic-container
+      :color colors/comic-white
+      :border-radius 16.0
+      :shadow-offset 6.0
+      :padding (m/EdgeInsets.all 20)
+      :child
+      (m/Column
+       .crossAxisAlignment m/CrossAxisAlignment.start
+       .children
+       [(m/Row
+         .mainAxisAlignment m/MainAxisAlignment.spaceBetween
+         .crossAxisAlignment m/CrossAxisAlignment.end
+         .children
+         [(m/Column
+           .crossAxisAlignment m/CrossAxisAlignment.start
+           .children
+           [(m/Text "CURRENT GOAL"
+                    .style (m/TextStyle
+                            .fontSize 12
+                            .fontWeight m/FontWeight.bold
+                            .color (.-shade500 m/Colors.grey)
+                            .letterSpacing 1))
+            (m/SizedBox .height 4)
+            (m/Text "Design Master"
+                    .style (m/TextStyle
+                            .fontSize 24
+                            .fontWeight m/FontWeight.w900
+                            .color colors/comic-black))])
+          (m/Text "75%"
+                  .style (m/TextStyle
+                          .fontSize 28
+                          .fontWeight m/FontWeight.w900
+                          .color colors/comic-primary))])
+        (m/SizedBox .height 16)
+        (m/Container
+         .height 24
+         .decoration (m/BoxDecoration
+                      .color (.-shade200 m/Colors.grey)
+                      .borderRadius (m/BorderRadius.circular 12)
+                      .border (m/Border.all .color colors/comic-black .width 2))
+         .child (m/FractionallySizedBox
+                 .alignment m/Alignment.centerLeft
+                 .widthFactor 0.75
+                 .child (m/Container
+                         .decoration (m/BoxDecoration
+                                      .color colors/comic-primary
+                                      .borderRadius (m/BorderRadius.only
+                                                     .topLeft (m/Radius.circular 10)
+                                                     .bottomLeft (m/Radius.circular 10))))))
+        (m/SizedBox .height 8)
+        (m/Align
+         .alignment m/Alignment.centerRight
+         .child (m/Text "350 XP to Level 6"
+                        .style (m/TextStyle
+                                .fontSize 12
+                                .fontWeight m/FontWeight.w500
+                                .color (.-shade500 m/Colors.grey))))]))
+     (m/Positioned
+      .top -10
+      .right -10
+      .child (m/Container
+              .width 80
+              .height 80
+              .decoration (m/BoxDecoration
+                           .color (.withOpacity ^m/Color colors/comic-yellow 0.5)
+                           .shape m/BoxShape.circle)))])))
+
+;; Quick stats item
+(defn stat-item [icon value label bg-color & {:keys [text-color] :or {text-color colors/comic-black}}]
+  (comic-container
+   :color bg-color
+   :border-radius 12.0
+   :shadow-offset 4.0
+   :child
+   (m/Container
+    .width 96
+    .height 96
+    .child (m/Column
+            .mainAxisAlignment m/MainAxisAlignment.center
+            .children
+            [(m/Icon icon .size 32 .color text-color)
+             (m/SizedBox .height 4)
+             (m/Text value
+                     .style (m/TextStyle
+                             .fontSize 20
+                             .fontWeight m/FontWeight.w900
+                             .color text-color))
+             (m/Text label
+                     .style (m/TextStyle
+                             .fontSize 11
+                             .fontWeight m/FontWeight.bold
+                             .color (.withOpacity ^m/Color text-color 0.8)))]))))
+
+;; Quick Stats Row
+(defn quick-stats []
+  (m/Container
+   .height 112
+   .child
+   (m/ListView
+    .scrollDirection m/Axis.horizontal
+    .padding (m/EdgeInsets.symmetric .horizontal 16)
+    .children
+    [(stat-item m/Icons.verified "750" "Total XP" colors/comic-yellow)
+     (m/SizedBox .width 12)
+     (stat-item m/Icons.school "4" "Courses" colors/comic-primary :text-color colors/comic-white)
+     (m/SizedBox .width 12)
+     (stat-item m/Icons.military_tech "5" "Badges" colors/comic-coral :text-color colors/comic-white)
+     (m/SizedBox .width 12)
+     (m/Container
+      .width 96
+      .height 96
+      .decoration (m/BoxDecoration
+                   .color colors/comic-white
+                   .borderRadius (m/BorderRadius.circular 12)
+                   .border (m/Border.all .color colors/comic-black .width 2 .style m/BorderStyle.solid)
+                   .boxShadow [(m/BoxShadow
+                                .color colors/comic-black
+                                .offset (m/Offset 4 4)
+                                .blurRadius 0)])
+      .child (m/Center
+              .child (m/Icon m/Icons.add .size 32 .color (.-shade300 m/Colors.grey))))])))
+
+;; Segmented progress bar
+(defn segmented-progress [completed total color]
+  (m/Row
+   .children
+   (vec
+    (for [i (range total)]
+      (m/Expanded
+       .child (m/Container
+               .margin (m/EdgeInsets.only .right (if (< i (dec total)) 4 0))
+               .height 12
+               .decoration (m/BoxDecoration
+                            .color (if (< i completed) color (.-shade200 m/Colors.grey))
+                            .borderRadius (m/BorderRadius.circular 4)
+                            .border (m/Border.all .color colors/comic-black .width 1))))))))
+
+;; Badge widget
+(defn badge-widget [text]
+  (m/Positioned
+   .top -12
+   .right -8
+   .child (m/Transform
+           .transform (m/Matrix4.rotationZ 0.05)
+           .child (m/Container
+                   .padding (m/EdgeInsets.symmetric .horizontal 12 .vertical 4)
+                   .decoration (m/BoxDecoration
+                                .color colors/comic-yellow
+                                .borderRadius (m/BorderRadius.circular 6)
+                                .border (m/Border.all .color colors/comic-black .width 2)
+                                .boxShadow [(m/BoxShadow
+                                             .color colors/comic-black
+                                             .offset (m/Offset 2 2)
+                                             .blurRadius 0)])
+                   .child (m/Text text
+                                  .style (m/TextStyle
+                                          .fontSize 10
+                                          .fontWeight m/FontWeight.w900
+                                          .color colors/comic-black))))))
+
+;; Course Card
+(defn course-card [& {:keys [title subtitle progress total progress-color
+                             icon badge-text button-text button-style image-bg]}]
+  (let [card-content
+        (comic-container
+         :color colors/comic-white
+         :border-radius 12.0
+         :shadow-offset 6.0
+         :child
+         (m/Column
+          .children
+          [(m/Container
+            .height 140
+            .width double/infinity
+            .decoration (m/BoxDecoration
+                         .color (or image-bg (.withOpacity ^m/Color colors/comic-primary 0.2))
+                         .borderRadius (m/BorderRadius.only
+                                        .topLeft (m/Radius.circular 10)
+                                        .topRight (m/Radius.circular 10))
+                         .border (m/Border .bottom (m/BorderSide .color colors/comic-black .width 2)))
+            .child (m/Stack
+                    .children
+                    [(m/Center
+                      .child (m/Icon icon .size 64 .color (.withOpacity ^m/Color colors/comic-black 0.2)))
+                     (m/Positioned
+                      .bottom 8
+                      .left 8
+                      .child (m/Container
+                              .padding (m/EdgeInsets.all 8)
+                              .decoration (m/BoxDecoration
+                                           .color (.withOpacity ^m/Color colors/comic-white 0.9)
+                                           .shape m/BoxShape.circle
+                                           .border (m/Border.all .color colors/comic-black .width 2))
+                              .child (m/Icon icon .size 20 .color colors/comic-black)))]))
+           (m/Padding
+            .padding (m/EdgeInsets.all 16)
+            .child
+            (m/Column
+             .crossAxisAlignment m/CrossAxisAlignment.start
+             .children
+             [(m/Text title
+                      .style (m/TextStyle
+                              .fontSize 18
+                              .fontWeight m/FontWeight.w900
+                              .color colors/comic-black))
+              (m/SizedBox .height 4)
+              (m/Text subtitle
+                      .style (m/TextStyle
+                              .fontSize 14
+                              .fontWeight m/FontWeight.w500
+                              .color (.-shade500 m/Colors.grey)))
+              (m/SizedBox .height 16)
+              (m/Row
+               .mainAxisAlignment m/MainAxisAlignment.spaceBetween
+               .children
+               [(m/Text "Progress"
+                        .style (m/TextStyle
+                                .fontSize 12
+                                .fontWeight m/FontWeight.bold
+                                .color colors/comic-black))
+                (m/Text (str (int (* (/ progress total) 100)) "%")
+                        .style (m/TextStyle
+                                .fontSize 12
+                                .fontWeight m/FontWeight.bold
+                                .color colors/comic-black))])
+              (m/SizedBox .height 8)
+              (segmented-progress progress total progress-color)
+              (m/SizedBox .height 16)
+              (m/SizedBox
+               .width double/infinity
+               .child
+               (m/ElevatedButton
+                .onPressed (fn [] nil)
+                .style (m/ElevatedButton.styleFrom
+                        .backgroundColor (case button-style
+                                           :primary colors/comic-black
+                                           :secondary colors/comic-white)
+                        .foregroundColor (case button-style
+                                           :primary colors/comic-white
+                                           :secondary colors/comic-black)
+                        .elevation 0
+                        .padding (m/EdgeInsets.symmetric .vertical 12)
+                        .shape (m/RoundedRectangleBorder
+                                .borderRadius (m/BorderRadius.circular 8)
+                                .side (m/BorderSide .color colors/comic-black .width 2))
+                        .shadowColor colors/comic-black)
+                .child (m/Row
+                        .mainAxisAlignment m/MainAxisAlignment.center
+                        .children
+                        [(m/Icon m/Icons.play_arrow .size 20)
+                         (m/SizedBox .width 8)
+                         (m/Text button-text
+                                 .style (m/TextStyle
+                                         .fontWeight m/FontWeight.bold))])))]))]))]
+    (m/Padding
+     .padding (m/EdgeInsets.symmetric .horizontal 16 .vertical 8)
+     .child
+     (if badge-text
+       (m/Stack
+        .clipBehavior m/Clip.none
+        .children
+        [card-content
+         (badge-widget badge-text)])
+       card-content))))
+
+;; Section header with yellow underline
+(defn section-header [title & {:keys [action-text]}]
+  (m/Padding
+   .padding (m/EdgeInsets.symmetric .horizontal 16 .vertical 8)
+   .child
+   (m/Row
+    .mainAxisAlignment m/MainAxisAlignment.spaceBetween
+    .children
+    [(m/Stack
+      .clipBehavior m/Clip.none
+      .children
+      [(m/Text title
+               .style (m/TextStyle
+                       .fontSize 22
+                       .fontWeight m/FontWeight.w900
+                       .fontStyle m/FontStyle.italic
+                       .color colors/comic-black))
+       (m/Positioned
+        .bottom -2
+        .left 0
+        .right 0
+        .child (m/Transform
+                .transform (m/Matrix4.skewX -0.1)
+                .child (m/Container
+                        .height 4
+                        .color colors/comic-yellow)))])
+     (if action-text
+       (m/TextButton
+        .onPressed (fn [] nil)
+        .child (m/Text action-text
+                       .style (m/TextStyle
+                               .fontSize 14
+                               .fontWeight m/FontWeight.bold
+                               .color colors/comic-primary)))
+       (m/SizedBox .width 0))])))
+
+;; Recommendation card
+(defn recommendation-card []
+  (m/Padding
+   .padding (m/EdgeInsets.all 16)
+   .child
+   (comic-container
+    :color colors/comic-yellow
+    :border-radius 12.0
+    :shadow-offset 4.0
+    :padding (m/EdgeInsets.all 16)
+    :child
+    (m/Row
+     .children
+     [(m/Container
+       .width 64
+       .height 64
+       .decoration (m/BoxDecoration
+                    .color colors/comic-white
+                    .shape m/BoxShape.circle
+                    .border (m/Border.all .color colors/comic-black .width 2))
+       .child (m/Center
+               .child (m/Icon m/Icons.piano .size 32 .color colors/comic-black)))
+      (m/SizedBox .width 16)
+      (m/Expanded
+       .child (m/Column
+               .crossAxisAlignment m/CrossAxisAlignment.start
+               .children
+               [(m/Text "Piano Basics"
+                        .style (m/TextStyle
+                                .fontSize 18
+                                .fontWeight m/FontWeight.bold
+                                .color colors/comic-black))
+                (m/SizedBox .height 4)
+                (m/Text "Start your musical journey"
+                        .style (m/TextStyle
+                                .fontSize 12
+                                .fontWeight m/FontWeight.w600
+                                .color (.withOpacity ^m/Color colors/comic-black 0.7)))
+                (m/SizedBox .height 8)
+                (m/Container
+                 .padding (m/EdgeInsets.symmetric .horizontal 12 .vertical 6)
+                 .decoration (m/BoxDecoration
+                              .color colors/comic-black
+                              .borderRadius (m/BorderRadius.circular 6)
+                              .boxShadow [(m/BoxShadow
+                                           .color (.withOpacity ^m/Color colors/comic-black 0.3)
+                                           .offset (m/Offset 2 2)
+                                           .blurRadius 0)])
+                 .child (m/Text "Preview"
+                                .style (m/TextStyle
+                                        .fontSize 12
+                                        .fontWeight m/FontWeight.bold
+                                        .color colors/comic-white)))]))]))))
+
 (defn view []
   (m/Scaffold
    .backgroundColor colors/comic-background-light
-   .body (m/Center
-          .child (m/Text "Home Screen"
-                         .style (m/TextStyle
-                                 .fontSize 24
-                                 .fontWeight m/FontWeight.bold
-                                 .color colors/comic-black)))))
+   .body
+   (m/SafeArea
+    .child
+    (m/SingleChildScrollView
+     .padding (m/EdgeInsets.only .bottom 120)
+     .child
+     (m/Column
+      .crossAxisAlignment m/CrossAxisAlignment.start
+      .children
+      [(profile-header)
+       (level-progress-card)
+       (quick-stats)
+       (m/SizedBox .height 24)
+       (section-header "Jump Back In" :action-text "View All")
+       (course-card
+        :title "Guitar for Beginners"
+        :subtitle "Module 3: Power Chords"
+        :progress 2
+        :total 4
+        :progress-color colors/comic-primary
+        :icon m/Icons.music_note
+        :badge-text "IN PROGRESS"
+        :button-text "RESUME LESSON"
+        :button-style :primary
+        :image-bg (.withOpacity ^m/Color colors/comic-primary 0.2))
+       (course-card
+        :title "Web Design 101"
+        :subtitle "Module 1: HTML Structure"
+        :progress 1
+        :total 4
+        :progress-color colors/comic-coral
+        :icon m/Icons.code
+        :button-text "START"
+        :button-style :secondary
+        :image-bg (.withOpacity ^m/Color colors/comic-coral 0.2))
+       (m/SizedBox .height 16)
+       (m/Padding
+        .padding (m/EdgeInsets.symmetric .horizontal 16)
+        .child (m/Text "Because you like Guitar..."
+                       .style (m/TextStyle
+                               .fontSize 20
+                               .fontWeight m/FontWeight.w900
+                               .color colors/comic-black)))
+       (recommendation-card)])))))

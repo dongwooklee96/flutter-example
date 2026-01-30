@@ -1,0 +1,144 @@
+(ns acme.components.course-card
+  (:require ["package:flutter/material.dart" :as m]
+            [acme.colors :as colors]
+            [acme.components.comic-container :refer [comic-container]]))
+
+(defn segmented-progress [completed total color]
+  (m/Row
+   .children
+   (vec
+    (for [i (range total)]
+      (m/Expanded
+       .child (m/Container
+               .margin (m/EdgeInsets.only .right (if (< i (dec total)) 4 0))
+               .height 12
+               .decoration (m/BoxDecoration
+                            .color (if (< i completed) color (.-shade200 m/Colors.grey))
+                            .borderRadius (m/BorderRadius.circular 4)
+                            .border (m/Border.all .color colors/comic-black .width 1))))))))
+
+(defn badge-widget [text]
+  (m/Positioned
+   .top -12
+   .right -8
+   .child (m/Transform
+           .transform (m/Matrix4.rotationZ 0.05)
+           .child (m/Container
+                   .padding (m/EdgeInsets.symmetric .horizontal 12 .vertical 4)
+                   .decoration (m/BoxDecoration
+                                .color colors/comic-yellow
+                                .borderRadius (m/BorderRadius.circular 6)
+                                .border (m/Border.all .color colors/comic-black .width 2)
+                                .boxShadow [(m/BoxShadow
+                                             .color colors/comic-black
+                                             .offset (m/Offset 2 2)
+                                             .blurRadius 0)])
+                   .child (m/Text text
+                                  .style (m/TextStyle
+                                          .fontSize 10
+                                          .fontWeight m/FontWeight.w900
+                                          .color colors/comic-black))))))
+
+(defn course-card [& {:keys [title subtitle progress total progress-color
+                             icon badge-text button-text button-style image-bg]}]
+  (let [card-content
+        (comic-container
+         :color colors/comic-white
+         :border-radius 12.0
+         :shadow-offset 6.0
+         :child
+         (m/Column
+          .children
+          [(m/Container
+            .height 140
+            .width double/infinity
+            .decoration (m/BoxDecoration
+                         .color (or image-bg (.withOpacity ^m/Color colors/comic-primary 0.2))
+                         .borderRadius (m/BorderRadius.only
+                                        .topLeft (m/Radius.circular 10)
+                                        .topRight (m/Radius.circular 10))
+                         .border (m/Border .bottom (m/BorderSide .color colors/comic-black .width 2)))
+            .child (m/Stack
+                    .children
+                    [(m/Center
+                      .child (m/Icon icon .size 64 .color (.withOpacity ^m/Color colors/comic-black 0.2)))
+                     (m/Positioned
+                      .bottom 8
+                      .left 8
+                      .child (m/Container
+                              .padding (m/EdgeInsets.all 8)
+                              .decoration (m/BoxDecoration
+                                           .color (.withOpacity ^m/Color colors/comic-white 0.9)
+                                           .shape m/BoxShape.circle
+                                           .border (m/Border.all .color colors/comic-black .width 2))
+                              .child (m/Icon icon .size 20 .color colors/comic-black)))]))
+           (m/Padding
+            .padding (m/EdgeInsets.all 16)
+            .child
+            (m/Column
+             .crossAxisAlignment m/CrossAxisAlignment.start
+             .children
+             [(m/Text title
+                      .style (m/TextStyle
+                              .fontSize 18
+                              .fontWeight m/FontWeight.w900
+                              .color colors/comic-black))
+              (m/SizedBox .height 4)
+              (m/Text subtitle
+                      .style (m/TextStyle
+                              .fontSize 14
+                              .fontWeight m/FontWeight.w500
+                              .color (.-shade500 m/Colors.grey)))
+              (m/SizedBox .height 16)
+              (m/Row
+               .mainAxisAlignment m/MainAxisAlignment.spaceBetween
+               .children
+               [(m/Text "Progress"
+                        .style (m/TextStyle
+                                .fontSize 12
+                                .fontWeight m/FontWeight.bold
+                                .color colors/comic-black))
+                (m/Text (str (int (* (/ progress total) 100)) "%")
+                        .style (m/TextStyle
+                                .fontSize 12
+                                .fontWeight m/FontWeight.bold
+                                .color colors/comic-black))])
+              (m/SizedBox .height 8)
+              (segmented-progress progress total progress-color)
+              (m/SizedBox .height 16)
+              (m/SizedBox
+               .width double/infinity
+               .child
+               (m/ElevatedButton
+                .onPressed (fn [] nil)
+                .style (m/ElevatedButton.styleFrom
+                        .backgroundColor (case button-style
+                                           :primary colors/comic-black
+                                           :secondary colors/comic-white)
+                        .foregroundColor (case button-style
+                                           :primary colors/comic-white
+                                           :secondary colors/comic-black)
+                        .elevation 0
+                        .padding (m/EdgeInsets.symmetric .vertical 12)
+                        .shape (m/RoundedRectangleBorder
+                                .borderRadius (m/BorderRadius.circular 8)
+                                .side (m/BorderSide .color colors/comic-black .width 2))
+                        .shadowColor colors/comic-black)
+                .child (m/Row
+                        .mainAxisAlignment m/MainAxisAlignment.center
+                        .children
+                        [(m/Icon m/Icons.play_arrow .size 20)
+                         (m/SizedBox .width 8)
+                         (m/Text button-text
+                                 .style (m/TextStyle
+                                         .fontWeight m/FontWeight.bold))])))]))]))]
+    (m/Padding
+     .padding (m/EdgeInsets.symmetric .horizontal 16 .vertical 8)
+     .child
+     (if badge-text
+       (m/Stack
+        .clipBehavior m/Clip.none
+        .children
+        [card-content
+         (badge-widget badge-text)])
+       card-content))))
